@@ -59,7 +59,8 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal(rawReqs[0], &req); err != nil {
 		w.Write([]byte("500 rawReqs[0]"))
 	}
-	if req.Method == "eth_getBlockByHash" {
+	switch meth := req.Method; meth {
+	case "eth_getBlockByHash", "eth_getBlockByNumber":
 		remoteUrl, err := url.Parse(swapURL)
 		if err != nil {
 			log.Println("target parse fail:", err)
@@ -70,7 +71,7 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("proxy to %s\n", remoteUrl)
 		proxy.ServeHTTP(w, r)
 		return
-	} else {
+	default:
 		remoteUrl, err := url.Parse(noopURL)
 		if err != nil {
 			log.Println("target parse fail:", err)
