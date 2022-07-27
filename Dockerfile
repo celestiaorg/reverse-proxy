@@ -12,4 +12,4 @@ COPY --from=builder /src /
 
 EXPOSE 8082
 
-CMD ["./reverse"]
+CMD ["./reverse-proxy"]
