@@ -51,6 +51,7 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
+		log.Printf("proxy to %s\n", remoteUrl)
 		proxy.ServeHTTP(w, r)
 		return
 	}
@@ -66,6 +67,7 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
+		log.Printf("proxy to %s\n", remoteUrl)
 		proxy.ServeHTTP(w, r)
 		return
 	} else {
@@ -76,6 +78,7 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
+		log.Printf("proxy to %s\n", remoteUrl)
 		proxy.ServeHTTP(w, r)
 		return
 	}
