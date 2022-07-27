@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -48,8 +49,8 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println("target parse fail:", err)
 			return
 		}
-
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
 		proxy.ServeHTTP(w, r)
 		return
 	}
@@ -64,6 +65,7 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
 		proxy.ServeHTTP(w, r)
 		return
 	}
