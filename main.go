@@ -17,11 +17,11 @@ const (
 	swapURL = "http://proxy:8080"
 )
 
-// var hostProxy map[string]*httputil.ReverseProxy = map[string]*httputil.ReverseProxy{}
-
 type baseHandle struct{}
 
 func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+
 	// Read all bytes of HTTP request body.
 	reqBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
