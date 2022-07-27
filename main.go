@@ -68,6 +68,16 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
 		proxy.ServeHTTP(w, r)
 		return
+	} else {
+		remoteUrl, err := url.Parse(noopURL)
+		if err != nil {
+			log.Println("target parse fail:", err)
+			return
+		}
+		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(reqBytes))
+		proxy.ServeHTTP(w, r)
+		return
 	}
 }
 
