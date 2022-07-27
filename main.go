@@ -6,43 +6,33 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 
 	"github.com/AdamSLevy/jsonrpc2"
 )
 
-const noop = "noop"
-const swap = "swap"
-
-var (
-	hostTarget = map[string]string{
-		swap: "http://localhost:8080",
-		noop: "http://localhost:8545",
-	}
-	hostProxy map[string]*httputil.ReverseProxy = map[string]*httputil.ReverseProxy{}
+const (
+	// noop    = "noop"
+	// swap    = "swap"
+	noopURL = "http://localhost:8545"
+	swapURL = "http://localhost:8080"
 )
 
-type baseHandle struct{}
+// var hostProxy map[string]*httputil.ReverseProxy = map[string]*httputil.ReverseProxy{}
 
-func respond(w http.ResponseWriter, res interface{}) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(res); err != nil {
-		// We should never have an error encoding our Response.
-		panic(err)
-	}
-}
+type baseHandle struct{}
 
 func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Read all bytes of HTTP request body.
 	reqBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.Write([]byte("500"))
-		// respondError(w, InvalidRequest)
+		w.Write([]byte("500 ReadAll"))
 		return
 	}
 
 	// Check for JSON parsing issues.
 	if !json.Valid(reqBytes) {
-		// respondError(w, ParseError)
+		w.Write([]byte("500 Invalid JSON"))
 		return
 	}
 	rawReqs := make([]json.RawMessage, 1)
@@ -56,27 +46,35 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500"))
 	}
 	if len(rawReqs) > 1 {
-		if fn, ok := hostProxy[noop]; ok {
-			fn.ServeHTTP(w, r)
+		// Batch Request
+		remoteUrl, err := url.Parse(noopURL)
+		if err != nil {
+			log.Println("target parse fail:", err)
 			return
 		}
+
+		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
+		proxy.ServeHTTP(w, r)
+		return
 	}
 	var req jsonrpc2.Request
 	if err := json.Unmarshal(rawReqs[0], &req); err != nil {
-		w.Write([]byte("500"))
+		w.Write([]byte("500 rawReqs[0]"))
 	}
 	if req.Method == "eth_getBlockByHash" {
-		if fn, ok := hostProxy[swap]; ok {
-			fn.ServeHTTP(w, r)
+		remoteUrl, err := url.Parse(swapURL)
+		if err != nil {
+			log.Println("target parse fail:", err)
 			return
 		}
-	}
-	w.Write([]byte("500"))
 
+		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
+		proxy.ServeHTTP(w, r)
+		return
+	}
 }
 
 func main() {
-
 	h := &baseHandle{}
 	http.Handle("/", h)
 
