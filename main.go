@@ -12,10 +12,8 @@ import (
 )
 
 const (
-	// noop    = "noop"
-	// swap    = "swap"
-	noopURL = "http://localhost:8545"
-	swapURL = "http://localhost:8080"
+	noopURL = "http://ethermint0:8545"
+	swapURL = "http://proxy:8080"
 )
 
 // var hostProxy map[string]*httputil.ReverseProxy = map[string]*httputil.ReverseProxy{}
@@ -37,8 +35,6 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	rawReqs := make([]json.RawMessage, 1)
 	if json.Unmarshal(reqBytes, &rawReqs) != nil {
-		// Since the JSON is valid, this Unmarshal error indicates that
-		// this is just a single request.
 		rawReqs[0] = json.RawMessage(reqBytes)
 	}
 	// Catch empty batch requests.
@@ -67,7 +63,6 @@ func (h *baseHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Println("target parse fail:", err)
 			return
 		}
-
 		proxy := httputil.NewSingleHostReverseProxy(remoteUrl)
 		proxy.ServeHTTP(w, r)
 		return
